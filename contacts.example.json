@@ -1,0 +1,14 @@
+{
+  "alex": {
+    "display_name": "Alex",
+    "instagram": "https://www.instagram.com/direct/t/17840000000000000/",
+    "thread_id": "17840000000000000",
+    "snapchat": "alex_snap"
+  },
+  "mom": {
+    "display_name": "Mom",
+    "relation": "mother",
+    "thread_id": "17840000000000001",
+    "instagram": "https://www.instagram.com/direct/t/17840000000000001/"
+  }
+}

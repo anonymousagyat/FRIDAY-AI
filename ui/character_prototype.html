@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRIDAY // AUTOMATON MK-LXXXV — Cybernetic Tactical Hologram</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan-core: #00f0ff;
+            --cyan-glow: rgba(0, 240, 255, 0.4);
+            --cyan-dim: rgba(0, 240, 255, 0.18);
+            --red-core: #ff184c;
+            --red-glow: rgba(255, 24, 76, 0.45);
+            --red-dim: rgba(255, 24, 76, 0.2);
+            --mint-light: #d6fffb;
+            --font-mono: 'Share Tech Mono', monospace;
+            --font-hud: 'Orbitron', sans-serif;
+            --font-sub: 'Rajdhani', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: #020409;
+            background-image: url('assets/hud_nebula.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: var(--mint-light);
+            font-family: var(--font-sub);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* CRT Scanline & Subtle Vignette */
+        .hud-scanlines {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.6;
+        }
+
+        .hud-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 35%, rgba(1, 3, 8, 0.88) 95%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Technical Grid Coordinates Overlay */
+        .hud-grid-overlay {
+            position: absolute;
+            inset: 0;
+            background-size: 60px 60px;
+            background-image: 
+                linear-gradient(to right, rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* Wireframe Tech Box & Chamfer Utilities */
+        .tech-panel {
+            background: rgba(4, 9, 18, 0.72);
+            border: 1px solid var(--cyan-dim);
+            backdrop-filter: blur(10px);
+            position: relative;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+        }
+
+        .tech-panel.red-border {
+            border-color: var(--red-dim);
+        }
+
+        .corner-notch::before, .corner-notch::after {
+            content: '';
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            border: 1.5px solid var(--cyan-core);
+            pointer-events: none;
+        }
+        .corner-notch::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .corner-notch::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+        .corner-notch.red::before, .corner-notch.red::after {
+            border-color: var(--red-core);
+        }
+
+        /* Top Bar Telemetry */
+        .top-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            border-bottom: 1px solid var(--cyan-dim);
+            background: rgba(2, 6, 14, 0.75);
+            backdrop-filter: blur(12px);
+            z-index: 40;
+            font-family: var(--font-mono);
+            letter-spacing: 1px;
+        }
+
+        .identity-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .vc-badge {
+            font-size: 0.8rem;
+            color: var(--red-core);
+            border: 1px solid var(--red-core);
+            padding: 2px 7px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        .brand-title {
+            font-family: var(--font-hud);
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: 0 0 12px var(--cyan-core);
+        }
+
+        .status-beacon {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--red-core);
+            box-shadow: 0 0 14px var(--red-core);
+            animation: pulseBeacon 1.8s infinite ease-in-out;
+        }
+
+        @keyframes pulseBeacon {
+            0%, 100% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 20px var(--red-core); }
+        }
+
+        .telemetry-strip {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            font-size: 0.82rem;
+        }
+
+        .strip-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .strip-label { color: rgba(0, 240, 255, 0.5); }
+        .strip-val { color: #fff; font-weight: bold; }
+        .strip-val.red { color: var(--red-core); text-shadow: 0 0 8px var(--red-core); }
+
+        /* ========================================================
+           HORIZONTAL CONNECTING DATA BUS (Cross-Screen Link Lines)
+        ======================================================== */
+        .center-bus-line {
+            position: absolute;
+            top: 50%;
+            left: 380px;
+            right: 420px;
+            height: 1.5px;
+            background: linear-gradient(90deg, transparent, var(--cyan-core) 25%, var(--red-core) 75%, transparent);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 8;
+        }
+
+        /* Optical Sensors On Data Bus (GLKM, VAR 1, VAR 2 from Reference) */
+        .bus-node {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--cyan-core);
+            z-index: 10;
+        }
+
+        .lens-optic {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--cyan-core);
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.25) 0%, transparent 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .lens-optic.red {
+            border-color: var(--red-core);
+            background: radial-gradient(circle, rgba(255, 24, 76, 0.3) 0%, transparent 70%);
+            box-shadow: 0 0 10px var(--red-glow);
+        }
+
+        .lens-inner {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--cyan-core);
+        }
+
+        .lens-inner.red { background: var(--red-core); }
+
+        /* ========================================================
+           CENTRAL HOLOGRAPHIC TARGET RETICLE & GYROSCOPE
+        ======================================================== */
+        .reticle-container {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
+            z-index: 15;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #reticle-canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .reticle-core-button {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 2px solid var(--cyan-core);
+            background: radial-gradient(circle, rgba(0, 240, 255, 0.3) 0%, rgba(2, 6, 14, 0.9) 75%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 0 25px var(--cyan-glow);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            outline: none;
+        }
+
+        .reticle-core-button.mic-listening {
+            border-color: var(--red-core);
+            background: radial-gradient(circle, rgba(255, 24, 76, 0.4) 0%, rgba(14, 2, 6, 0.9) 75%);
+            box-shadow: 0 0 35px var(--red-glow);
+            animation: pulseListening 1.8s infinite ease-in-out;
+        }
+
+        @keyframes pulseListening {
+            0%, 100% { box-shadow: 0 0 20px var(--red-core); transform: scale(1); }
+            50% { box-shadow: 0 0 45px var(--red-core); transform: scale(1.08); }
+        }
+
+        .reticle-core-button:hover {
+            transform: scale(1.1);
+        }
+
+        .core-com-tag {
+            font-family: var(--font-hud);
+            font-size: 0.75rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            color: #fff;
+        }
+
+        .core-state-sub {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--cyan-core);
+            letter-spacing: 1px;
+        }
+
+        .core-chevron {
+            position: absolute;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 5px;
+            pointer-events: none;
+        }
+        .core-chevron.top { top: 2px; color: var(--cyan-core); }
+        .core-chevron.bottom { bottom: 2px; color: var(--red-core); }
+
+        /* ========================================================
+           LEFT COLUMN: ALGORITHMS, GAUGES & MULTI-OSCILLOSCOPES
+        ======================================================== */
+        .left-flank {
+            position: absolute;
+            left: 32px;
+            top: 76px;
+            bottom: 32px;
+            width: 360px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 25;
+            gap: 16px;
+        }
+
+        /* Card 1: Automaton Telemetry & Hex Target (Ref [001] = 5/24 //) */
+        .telemetry-card-1 {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .header-tag-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            border-bottom: 1px solid var(--cyan-dim);
+            padding-bottom: 6px;
+        }
+
+        .dual-bars-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin: 4px 0;
+        }
+
+        .dual-bar-item {
+            height: 10px;
+            width: 100%;
+            background: rgba(255, 24, 76, 0.15);
+            border: 1px solid var(--red-dim);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dual-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--red-core), #ff4d6d);
+            box-shadow: 0 0 10px var(--red-core);
+            transition: width 0.5s ease;
+        }
+
+        .diamond-data-grid {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 8px 0;
+        }
+
+        .diamond-target {
+            width: 56px;
+            height: 56px;
+            border: 1px solid var(--cyan-core);
+            transform: rotate(45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 6px;
+        }
+
+        .inner-diamond {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--red-core);
+            background: rgba(255, 24, 76, 0.18);
+            animation: pulseDiamond 2.5s infinite ease-in-out;
+        }
+
+        @keyframes pulseDiamond {
+            0%, 100% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.15); opacity: 1; }
+        }
+
+        .tele-data-code {
+            flex: 1;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            line-height: 1.4;
+            color: rgba(214, 255, 251, 0.75);
+            background: rgba(0, 0, 0, 0.35);
+            padding: 8px;
+            border-left: 2px solid var(--cyan-core);
+        }
+
+        /* Card 2: Algorithm Calculator & Circular Meter (Ref ALGRTM CALCTR) */
+        .telemetry-card-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 14px;
+        }
+
+        .algrtm-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--cyan-dim);
+            padding: 10px;
+        }
+
+        .algrtm-diamonds {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .mini-diamond {
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid var(--cyan-core);
+            transform: rotate(45deg);
+        }
+        .mini-diamond.red { border-color: var(--red-core); background: rgba(255, 24, 76, 0.2); }
+
+        .gauge-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--cyan-dim);
+            padding: 10px;
+            position: relative;
+        }
+
+        #gauge-canvas {
+            width: 80px;
+            height: 80px;
+        }
+
+        /* Card 3: Triple Oscilloscope Stack (LAB I, LAB II, LAB III from Ref) */
+        .oscilloscope-card {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .osc-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .osc-tag {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--cyan-core);
+            width: 48px;
+        }
+
+        .osc-screen {
+            width: 270px;
+            height: 32px;
+            background: rgba(1, 4, 10, 0.7);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+        }
+
+        /* ========================================================
+           RIGHT COLUMN: WEATHER RADAR, ATMOSPHERE & HARDWARE
+        ======================================================== */
+        .right-flank {
+            position: absolute;
+            right: 32px;
+            top: 76px;
+            bottom: 32px;
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 25;
+            gap: 14px;
+        }
+
+        /* Top Pods: Fluid Plasma Reactor Tubes & Hadron Hex */
+        .top-pods-row {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 12px;
+        }
+
+        .plasma-chamber {
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .chamber-title {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--red-core);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .tubes-container {
+            display: flex;
+            justify-content: space-around;
+            gap: 8px;
+        }
+
+        .vertical-tube {
+            flex: 1;
+            height: 60px;
+            border: 1px solid var(--red-dim);
+            background: rgba(0, 0, 0, 0.45);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tube-energy-wave {
+            position: absolute;
+            bottom: 0;
+            width: 200%;
+            height: 65%;
+            background: linear-gradient(180deg, rgba(255, 24, 76, 0.85), rgba(255, 0, 80, 0.1));
+            filter: blur(2px);
+            animation: waveMotion 2.4s infinite linear;
+        }
+
+        @keyframes waveMotion {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-25%) translateY(-6px); }
+            100% { transform: translateX(-50%) translateY(0); }
+        }
+
+        .tube-num {
+            position: relative;
+            z-index: 3;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .hadron-panel {
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .rotating-hex {
+            width: 44px;
+            height: 44px;
+            border: 1.5px solid var(--red-core);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 24, 76, 0.12);
+            animation: spinHex 10s linear infinite;
+        }
+
+        @keyframes spinHex {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hex-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--red-core);
+            box-shadow: 0 0 10px var(--red-core);
+        }
+
+        /* WEATHER & ATMOSPHERIC RADAR STATION (Ref SATURN [001]) */
+        .weather-station-card {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .weather-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .temp-display {
+            font-family: var(--font-hud);
+            font-size: 2.6rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 18px var(--cyan-core);
+            line-height: 1;
+        }
+
+        .weather-meta {
+            text-align: right;
+            font-family: var(--font-mono);
+        }
+
+        .weather-status {
+            font-size: 0.95rem;
+            color: var(--cyan-core);
+            font-weight: bold;
+            letter-spacing: 1.5px;
+        }
+
+        .weather-city {
+            font-size: 0.75rem;
+            color: rgba(214, 255, 251, 0.65);
+        }
+
+        /* Live Atmospheric Pressure Waveform Line */
+        .pressure-graph-wrap {
+            height: 36px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            position: relative;
+        }
+
+        #pressure-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--cyan-dim);
+            padding: 8px;
+            font-family: var(--font-mono);
+        }
+
+        .w-grid-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .w-label { font-size: 0.62rem; color: rgba(0, 240, 255, 0.5); }
+        .w-val { font-size: 0.85rem; font-weight: bold; color: #fff; }
+
+        /* HARDWARE KERNEL MATRIX (CPU, RAM, DISK, NET) */
+        .hardware-matrix-card {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .hw-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+        }
+
+        .hw-label { width: 90px; color: rgba(0, 240, 255, 0.6); }
+
+        .hw-track {
+            flex: 1;
+            height: 9px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .hw-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--cyan-core), #0088ff);
+            box-shadow: 0 0 8px var(--cyan-core);
+            transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .hw-bar.red {
+            background: linear-gradient(90deg, var(--red-core), #ff0044);
+            box-shadow: 0 0 8px var(--red-core);
+        }
+
+        .hw-val {
+            width: 48px;
+            text-align: right;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        /* Accelerators Matrix (Ref [ACCEL MEMR], [ACCEL HDD], [ACCEL NNTR]) */
+        .accel-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-family: var(--font-mono);
+            margin-top: 4px;
+        }
+
+        .accel-cell {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--cyan-dim);
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .accel-name { font-size: 0.62rem; color: var(--cyan-core); }
+
+        .accel-leds {
+            display: flex;
+            gap: 3px;
+        }
+
+        .accel-led {
+            height: 14px;
+            flex: 1;
+            background: rgba(0, 240, 255, 0.15);
+        }
+
+        .accel-led.on-cyan { background: var(--cyan-core); box-shadow: 0 0 5px var(--cyan-core); }
+        .accel-led.on-red { background: var(--red-core); box-shadow: 0 0 5px var(--red-core); }
+
+        /* Bottom Command & Audio Frequency Line */
+        .bottom-dock {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 35;
+            background: rgba(2, 6, 14, 0.85);
+            border: 1px solid var(--cyan-dim);
+            padding: 8px 24px;
+            border-radius: 30px;
+            backdrop-filter: blur(14px);
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+        }
+
+        .bottom-dock input[type="text"] {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--cyan-dim);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            padding: 6px 16px;
+            width: 320px;
+            border-radius: 20px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .bottom-dock input[type="text"]:focus {
+            border-color: var(--cyan-core);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .status-pill-btn {
+            background: transparent;
+            border: 1px solid var(--cyan-core);
+            color: var(--cyan-core);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 5px 14px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .status-pill-btn:hover {
+            background: var(--cyan-core);
+            color: #000;
+            box-shadow: 0 0 12px var(--cyan-core);
+        }
+    </style>
+</head>
+<body>
+    <div class="hud-scanlines"></div>
+    <div class="hud-vignette"></div>
+    <div class="hud-grid-overlay"></div>
+
+    <!-- Top Status Bar (Matching Reference VC-32 // AUTOMATON) -->
+    <header class="top-nav">
+        <div class="identity-group">
+            <span class="vc-badge">VC-32</span>
+            <div class="brand-title">
+                <div class="status-beacon" id="beacon-dot"></div>
+                <span>AUTOMATON // FRIDAY OS</span>
+            </div>
+        </div>
+
+        <div class="telemetry-strip">
+            <div class="strip-item">
+                <span class="strip-label">ORBITAL:</span>
+                <span class="strip-val" id="top-sector">SATURN // SECTOR 001</span>
+            </div>
+            <div class="strip-item">
+                <span class="strip-label">FREQUENCY:</span>
+                <span class="strip-val">1420.405 MHz</span>
+            </div>
+            <div class="strip-item">
+                <span class="strip-label">NETWORK:</span>
+                <span class="strip-val" id="top-net">ONLINE [4.2 MB/S]</span>
+            </div>
+            <div class="strip-item">
+                <span class="strip-label">MIC STATE:</span>
+                <span class="strip-val red" id="top-mic-indicator">STANDBY [MIC OFF]</span>
+            </div>
+            <div class="strip-item">
+                <span class="strip-label">TIME:</span>
+                <span class="strip-val" id="sys-clock">00:00:00.00</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- HORIZONTAL DATA BUS CONNECTION LINE -->
+    <div class="center-bus-line"></div>
+
+    <!-- Data Bus Optical Lenses (GLKM, VAR 1, VAR 2 from Ref) -->
+    <div class="bus-node" style="left: 410px;">
+        <div class="lens-optic red"><div class="lens-inner red"></div></div>
+        <span>GLKM</span>
+    </div>
+    <div class="bus-node" style="right: 450px;">
+        <span>VAR 1</span>
+        <div class="lens-optic"><div class="lens-inner"></div></div>
+    </div>
+    <div class="bus-node" style="right: 390px;">
+        <span>VAR 2</span>
+        <div class="lens-optic"><div class="lens-inner"></div></div>
+    </div>
+
+    <!-- ========================================================
+       CENTER STAGE: GRAND HOLOGRAPHIC TARGET RETICLE & GYRO
+    ======================================================== -->
+    <div class="reticle-container">
+        <canvas id="reticle-canvas" width="500" height="500"></canvas>
+        <button id="reticle-btn" class="reticle-core-button" title="Click Center Core to Toggle Mic Voice Sensing">
+            <span class="core-com-tag">COM</span>
+            <span class="core-state-sub" id="core-status-text">OFF</span>
+        </button>
+        <div class="core-chevron top">&gt;&gt;&gt; TARGET RETICLE &lt;&lt;&lt;</div>
+        <div class="core-chevron bottom">&#9650; SATURN PROTOCOL &#9650;</div>
+    </div>
+
+    <!-- ========================================================
+       LEFT FLANK: ALGORITHMS, TELEMETRY GAUGES & OSCILLOSCOPES
+    ======================================================== -->
+    <div class="left-flank">
+        <!-- Top Left Card: [001] = 5/24 // CTMNT / SATURN -->
+        <div class="tech-panel corner-notch telemetry-card-1">
+            <div class="header-tag-row">
+                <span style="color: var(--cyan-core); font-weight: bold;">[001] == 5/24 //</span>
+                <span style="color: var(--red-core); font-weight: bold;">ENG [IIII]</span>
+            </div>
+            <div class="dual-bars-row">
+                <div class="dual-bar-item"><div class="dual-bar-fill" style="width: 78%;"></div></div>
+                <div class="dual-bar-item"><div class="dual-bar-fill" style="width: 44%;"></div></div>
+            </div>
+            <div class="diamond-data-grid">
+                <div class="diamond-target">
+                    <div class="inner-diamond"></div>
+                </div>
+                <div class="tele-data-code">
+                    <span>CTNMNT / SATURN</span><br>
+                    <span>SECTOR POS: 24.81 // 19.43</span><br>
+                    <span style="color: var(--cyan-core);">ALGORITHM STREAM LOCKED</span>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.72rem;">
+                <span style="color: rgba(0, 240, 255, 0.6);">COORD HASH</span>
+                <span style="color: #fff; font-weight: bold;">06882 // 19438</span>
+            </div>
+        </div>
+
+        <!-- Middle Card: ALGRTM CALCTR & Circular Dial (from Ref) -->
+        <div class="tech-panel corner-notch telemetry-card-2">
+            <div class="algrtm-box">
+                <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--red-core); font-weight: bold;">ALGRTM CALCTR</div>
+                <div class="algrtm-diamonds">
+                    <div class="mini-diamond red"></div>
+                    <div class="mini-diamond"></div>
+                </div>
+                <span style="font-family: var(--font-mono); font-size: 0.65rem; color: #fff;">INDEX 100</span>
+            </div>
+            <div class="gauge-box">
+                <canvas id="gauge-canvas" width="80" height="80"></canvas>
+                <span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--cyan-core); margin-top: 4px;">RADIAL 72%</span>
+            </div>
+        </div>
+
+        <!-- Bottom Oscilloscopes: LAB I (Saw), LAB II (ECG), LAB III (Noise) -->
+        <div class="tech-panel corner-notch oscilloscope-card">
+            <div class="osc-row">
+                <span class="osc-tag" style="color: var(--red-core);">LAB I</span>
+                <canvas id="osc-saw" class="osc-screen"></canvas>
+            </div>
+            <div class="osc-row">
+                <span class="osc-tag" style="color: var(--cyan-core);">LAB II</span>
+                <canvas id="osc-ecg" class="osc-screen"></canvas>
+            </div>
+            <div class="osc-row">
+                <span class="osc-tag" style="color: #c8fff4;">LAB III</span>
+                <canvas id="osc-noise" class="osc-screen"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================
+       RIGHT FLANK: WEATHER RADAR, ATMOSPHERE & SYSTEM MATRICES
+    ======================================================== -->
+    <div class="right-flank">
+        <!-- Top Pods: Fluid Plasma Reactor Tubes & Hadron Collider Hex -->
+        <div class="top-pods-row">
+            <div class="tech-panel corner-notch red-border plasma-chamber">
+                <div class="chamber-title">
+                    <span>OMSTRN REACTOR</span>
+                    <span style="color: #fff;">012 // 02 // 012</span>
+                </div>
+                <div class="tubes-container">
+                    <div class="vertical-tube"><div class="tube-energy-wave" style="animation-duration: 2.0s;"></div><span class="tube-num">012</span></div>
+                    <div class="vertical-tube"><div class="tube-energy-wave" style="animation-duration: 1.6s;"></div><span class="tube-num">02</span></div>
+                    <div class="vertical-tube"><div class="tube-energy-wave" style="animation-duration: 2.5s;"></div><span class="tube-num">012</span></div>
+                </div>
+            </div>
+
+            <div class="tech-panel corner-notch red-border hadron-panel">
+                <span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--red-core); font-weight: bold;">HADR COLLIDER</span>
+                <div class="rotating-hex">
+                    <div class="hex-dot"></div>
+                </div>
+                <span style="font-family: var(--font-mono); font-size: 0.68rem; color: #fff;">3.42 TeV</span>
+            </div>
+        </div>
+
+        <!-- Atmospheric Weather Radar Station (Ref SATURN [001]) -->
+        <div class="tech-panel corner-notch weather-station-card">
+            <div class="header-tag-row">
+                <span style="color: var(--cyan-core); font-weight: bold;">SATURN [001] // ATMOSPHERE</span>
+                <span id="weather-badge" style="color: var(--cyan-core); font-size: 0.72rem;">RADAR ACTIVE</span>
+            </div>
+            <div class="weather-banner">
+                <div class="temp-display" id="weather-temp">25°C</div>
+                <div class="weather-meta">
+                    <div class="weather-status" id="weather-desc">CLEAR SKY</div>
+                    <div class="weather-city" id="weather-city">DETECTING COORDINATES...</div>
+                </div>
+            </div>
+
+            <!-- Pressure Waveform Line -->
+            <div class="pressure-graph-wrap">
+                <canvas id="pressure-canvas"></canvas>
+            </div>
+
+            <div class="weather-grid">
+                <div class="w-grid-item">
+                    <span class="w-label">HUMIDITY</span>
+                    <span class="w-val" id="w-humidity">79%</span>
+                </div>
+                <div class="w-grid-item">
+                    <span class="w-label">WIND VECTOR</span>
+                    <span class="w-val" id="w-wind">12 km/h W</span>
+                </div>
+                <div class="w-grid-item">
+                    <span class="w-label">PRESSURE</span>
+                    <span class="w-val" id="w-press">1013 hPa</span>
+                </div>
+                <div class="w-grid-item">
+                    <span class="w-label">PRECIPITATION</span>
+                    <span class="w-val" id="w-precip">0.0 mm</span>
+                </div>
+                <div class="w-grid-item">
+                    <span class="w-label">UV INDEX</span>
+                    <span class="w-val" id="w-uv">INDEX 3</span>
+                </div>
+                <div class="w-grid-item">
+                    <span class="w-label">AIR QUALITY</span>
+                    <span class="w-val" style="color: var(--cyan-core);">AQI 38 [GOOD]</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hardware Matrix: CPU, RAM, Disk, Net, Accelerators -->
+        <div class="tech-panel corner-notch hardware-matrix-card">
+            <div class="header-tag-row">
+                <span style="color: var(--cyan-core); font-weight: bold;">SYSTEM TELEMETRY MATRIX</span>
+                <span style="color: #fff;" id="hw-os-tag">WIN 11 PRO</span>
+            </div>
+            <div class="hw-row">
+                <span class="hw-label">CPU LOAD</span>
+                <div class="hw-track"><div id="cpu-bar" class="hw-bar" style="width: 22%;"></div></div>
+                <span id="cpu-val" class="hw-val">22%</span>
+            </div>
+            <div class="hw-row">
+                <span class="hw-label">MEM RAM</span>
+                <div class="hw-track"><div id="ram-bar" class="hw-bar" style="width: 65%;"></div></div>
+                <span id="ram-val" class="hw-val">65%</span>
+            </div>
+            <div class="hw-row">
+                <span class="hw-label">DISK (C:)</span>
+                <div class="hw-track"><div id="disk-bar" class="hw-bar red" style="width: 85%;"></div></div>
+                <span id="disk-val" class="hw-val">85%</span>
+            </div>
+            <div class="hw-row">
+                <span class="hw-label">NET DOWN/UP</span>
+                <div class="hw-track"><div id="net-bar" class="hw-bar" style="width: 45%;"></div></div>
+                <span id="net-val" class="hw-val">4.2 MB/s</span>
+            </div>
+
+            <!-- Accelerators Matrix (Ref [ACCEL MEMR], [ACCEL HDD], [ACCEL NNTR]) -->
+            <div class="accel-grid">
+                <div class="accel-cell">
+                    <span class="accel-name">[ACCEL MEMR]</span>
+                    <div class="accel-leds">
+                        <div class="accel-led on-cyan"></div>
+                        <div class="accel-led on-cyan"></div>
+                        <div class="accel-led on-cyan"></div>
+                        <div class="accel-led"></div>
+                    </div>
+                </div>
+                <div class="accel-cell">
+                    <span class="accel-name">[ACCEL HDD]</span>
+                    <div class="accel-leds">
+                        <div class="accel-led on-red"></div>
+                        <div class="accel-led on-red"></div>
+                        <div class="accel-led"></div>
+                        <div class="accel-led"></div>
+                    </div>
+                </div>
+                <div class="accel-cell">
+                    <span class="accel-name">[ACCEL NNTR]</span>
+                    <div class="accel-leds">
+                        <div class="accel-led on-cyan"></div>
+                        <div class="accel-led on-cyan"></div>
+                        <div class="accel-led on-cyan"></div>
+                        <div class="accel-led on-cyan"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM COMMAND DOCK -->
+    <footer class="bottom-dock">
+        <button id="mic-dock-btn" class="status-pill-btn" title="Click to Toggle Microphone">MIC: STANDBY</button>
+        <input type="text" id="cmd-input" placeholder="Transmit command or prompt to FRIDAY..." autocomplete="off">
+        <button id="submit-cmd-btn" class="status-pill-btn">TRANSMIT</button>
+    </footer>
+
+    <!-- INTERACTIVE SCRIPTS -->
+    <script>
+        // ========================================================
+        // 1. CLOCK & TELEMETRY SCRIPT
+        // ========================================================
+        function updateClock() {
+            const now = new Date();
+            const ms = String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+            document.getElementById('sys-clock').innerText = now.toTimeString().split(' ')[0] + '.' + ms;
+        }
+        setInterval(updateClock, 50);
+        updateClock();
+
+        // ========================================================
+        // 2. RETICLE CANVAS RENDERING (Exact match to reference)
+        // ========================================================
+        const rCanvas = document.getElementById('reticle-canvas');
+        const rCtx = rCanvas.getContext('2d');
+        let rAngle = 0;
+
+        function renderReticle() {
+            const w = rCanvas.width;
+            const h = rCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            rCtx.clearRect(0, 0, w, h);
+            rAngle += 0.007;
+
+            // Outer Segmented Gear Ring
+            rCtx.save();
+            rCtx.translate(cx, cy);
+            rCtx.rotate(rAngle);
+            rCtx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+            rCtx.lineWidth = 3;
+            rCtx.setLineDash([14, 8, 4, 8]);
+            rCtx.beginPath();
+            rCtx.arc(0, 0, 215, 0, Math.PI * 2);
+            rCtx.stroke();
+            rCtx.restore();
+
+            // Middle Dotted Track (Counter-Rotation)
+            rCtx.save();
+            rCtx.translate(cx, cy);
+            rCtx.rotate(-rAngle * 1.5);
+            rCtx.strokeStyle = 'rgba(255, 24, 76, 0.6)';
+            rCtx.lineWidth = 2;
+            rCtx.setLineDash([4, 10]);
+            rCtx.beginPath();
+            rCtx.arc(0, 0, 188, 0, Math.PI * 2);
+            rCtx.stroke();
+            rCtx.restore();
+
+            // Degree Ticks Ring (0 to 360)
+            rCtx.save();
+            rCtx.translate(cx, cy);
+            rCtx.rotate(rAngle * 0.3);
+            rCtx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
+            rCtx.lineWidth = 1.5;
+            rCtx.setLineDash([]);
+            for (let i = 0; i < 360; i += 15) {
+                const rad = i * Math.PI / 180;
+                const r1 = 155;
+                const r2 = (i % 45 === 0) ? 170 : 162;
+                rCtx.beginPath();
+                rCtx.moveTo(Math.cos(rad) * r1, Math.sin(rad) * r1);
+                rCtx.lineTo(Math.cos(rad) * r2, Math.sin(rad) * r2);
+                rCtx.stroke();
+            }
+            rCtx.restore();
+
+            // Inner Red Circular Boundary
+            rCtx.save();
+            rCtx.translate(cx, cy);
+            rCtx.strokeStyle = 'rgba(255, 24, 76, 0.85)';
+            rCtx.lineWidth = 2;
+            rCtx.beginPath();
+            rCtx.arc(0, 0, 78, 0, Math.PI * 2);
+            rCtx.stroke();
+
+            // Inner Rotating Compass Needle
+            rCtx.rotate(-rAngle * 2.2);
+            rCtx.strokeStyle = 'rgba(0, 240, 255, 0.9)';
+            rCtx.lineWidth = 2;
+            rCtx.beginPath();
+            rCtx.moveTo(-50, 0);
+            rCtx.lineTo(50, 0);
+            rCtx.moveTo(0, -50);
+            rCtx.lineTo(0, 50);
+            rCtx.stroke();
+            rCtx.restore();
+
+            requestAnimationFrame(renderReticle);
+        }
+        renderReticle();
+
+        // ========================================================
+        // 3. RADIAL GAUGE DIAL (30 to 90 degrees from Ref)
+        // ========================================================
+        const gCanvas = document.getElementById('gauge-canvas');
+        const gCtx = gCanvas.getContext('2d');
+        function drawGauge(val) {
+            const w = gCanvas.width;
+            const h = gCanvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+            gCtx.clearRect(0, 0, w, h);
+
+            // Arc track
+            gCtx.strokeStyle = 'rgba(0, 240, 255, 0.2)';
+            gCtx.lineWidth = 6;
+            gCtx.beginPath();
+            gCtx.arc(cx, cy, 28, Math.PI * 0.75, Math.PI * 2.25);
+            gCtx.stroke();
+
+            // Value arc
+            const endAngle = Math.PI * 0.75 + (val / 100) * (Math.PI * 1.5);
+            gCtx.strokeStyle = '#00f0ff';
+            gCtx.lineWidth = 6;
+            gCtx.beginPath();
+            gCtx.arc(cx, cy, 28, Math.PI * 0.75, endAngle);
+            gCtx.stroke();
+
+            // Red pointer tick
+            gCtx.fillStyle = '#ff184c';
+            gCtx.beginPath();
+            gCtx.arc(cx, cy, 4, 0, Math.PI * 2);
+            gCtx.fill();
+        }
+        drawGauge(72);
+
+        // ========================================================
+        // 4. OSCILLOSCOPES (LAB I: Saw, LAB II: ECG, LAB III: Noise)
+        // ========================================================
+        const cSaw = document.getElementById('osc-saw');
+        const cEcg = document.getElementById('osc-ecg');
+        const cNoise = document.getElementById('osc-noise');
+        const ctxSaw = cSaw.getContext('2d');
+        const ctxEcg = cEcg.getContext('2d');
+        const ctxNoise = cNoise.getContext('2d');
+
+        function resizeOscilloscopes() {
+            [cSaw, cEcg, cNoise].forEach(c => {
+                c.width = c.clientWidth;
+                c.height = c.clientHeight;
+            });
+        }
+        resizeOscilloscopes();
+
+        let oscPhase = 0;
+        function renderOscilloscopes() {
+            oscPhase += 0.09;
+            const w = cSaw.width;
+            const h = cSaw.height;
+
+            // LAB I: Red Triangular / Sawtooth wave
+            ctxSaw.clearRect(0, 0, w, h);
+            ctxSaw.strokeStyle = '#ff184c';
+            ctxSaw.lineWidth = 1.8;
+            ctxSaw.beginPath();
+            for (let x = 0; x < w; x++) {
+                const y = (h / 2) + Math.sin((x * 0.08) + oscPhase) * (h * 0.38) * ((x % 28 < 14) ? 1 : -1);
+                if (x === 0) ctxSaw.moveTo(x, y);
+                else ctxSaw.lineTo(x, y);
+            }
+            ctxSaw.stroke();
+
+            // LAB II: Cyan Stepped ECG / Pulse wave
+            ctxEcg.clearRect(0, 0, w, h);
+            ctxEcg.strokeStyle = '#00f0ff';
+            ctxEcg.lineWidth = 1.8;
+            ctxEcg.beginPath();
+            for (let x = 0; x < w; x++) {
+                let y = h / 2;
+                const pos = (x + oscPhase * 16) % 84;
+                if (pos > 32 && pos < 42) y -= 12;
+                else if (pos >= 42 && pos < 52) y += 12;
+                if (x === 0) ctxEcg.moveTo(x, y);
+                else ctxEcg.lineTo(x, y);
+            }
+            ctxEcg.stroke();
+
+            // LAB III: Mountainous terrain / Audio spectrum envelope
+            ctxNoise.clearRect(0, 0, w, h);
+            ctxNoise.fillStyle = 'rgba(200, 255, 244, 0.2)';
+            ctxNoise.strokeStyle = '#c8fff4';
+            ctxNoise.lineWidth = 1.4;
+            ctxNoise.beginPath();
+            ctxNoise.moveTo(0, h);
+            for (let x = 0; x < w; x++) {
+                const y = (h * 0.6) - (Math.sin(x * 0.12 + oscPhase) * 6) - (Math.cos(x * 0.28 - oscPhase) * 6);
+                ctxNoise.lineTo(x, y);
+            }
+            ctxNoise.lineTo(w, h);
+            ctxNoise.closePath();
+            ctxNoise.fill();
+            ctxNoise.stroke();
+
+            requestAnimationFrame(renderOscilloscopes);
+        }
+        renderOscilloscopes();
+
+        // Pressure curve in weather card
+        const pCanvas = document.getElementById('pressure-canvas');
+        const pCtx = pCanvas.getContext('2d');
+        function renderPressureWave() {
+            pCanvas.width = pCanvas.clientWidth;
+            pCanvas.height = pCanvas.clientHeight;
+            const w = pCanvas.width;
+            const h = pCanvas.height;
+
+            pCtx.clearRect(0, 0, w, h);
+            pCtx.strokeStyle = 'rgba(0, 240, 255, 0.7)';
+            pCtx.lineWidth = 1.5;
+            pCtx.beginPath();
+            for (let x = 0; x < w; x++) {
+                const y = (h / 2) + Math.sin(x * 0.05 + oscPhase * 0.4) * (h * 0.35);
+                if (x === 0) pCtx.moveTo(x, y);
+                else pCtx.lineTo(x, y);
+            }
+            pCtx.stroke();
+        }
+        setInterval(renderPressureWave, 100);
+
+        // ========================================================
+        // 5. LIVE WEATHER RADAR SATELLITE (wttr.in)
+        // ========================================================
+        async function fetchWeather() {
+            try {
+                const res = await fetch('https://wttr.in/?format=j1');
+                if (res.ok) {
+                    const data = await res.json();
+                    const cur = data.current_condition[0];
+                    const area = data.nearest_area[0];
+                    const cityName = area.areaName[0].value + ', ' + area.country[0].value;
+
+                    document.getElementById('weather-temp').innerText = cur.temp_C + '°C';
+                    document.getElementById('weather-desc').innerText = cur.weatherDesc[0].value.toUpperCase();
+                    document.getElementById('weather-city').innerText = cityName.toUpperCase();
+                    document.getElementById('w-humidity').innerText = cur.humidity + '%';
+                    document.getElementById('w-wind').innerText = cur.windspeedKmph + ' km/h ' + cur.winddir16Point;
+                    document.getElementById('w-press').innerText = cur.pressure + ' hPa';
+                    document.getElementById('w-precip').innerText = cur.precipMM + ' mm';
+                    document.getElementById('w-uv').innerText = 'INDEX ' + cur.uvIndex;
+                }
+            } catch(e) {
+                console.log('Weather fallback:', e);
+            }
+        }
+        fetchWeather();
+        setInterval(fetchWeather, 60000);
+
+        // ========================================================
+        // 6. LIVE SYSTEM METRICS (psutil PyWebView Bridge / Natural)
+        // ========================================================
+        function updateSystemMeters(cpu, ram, disk, net) {
+            document.getElementById('cpu-bar').style.width = cpu + '%';
+            document.getElementById('cpu-val').innerText = Math.round(cpu) + '%';
+
+            document.getElementById('ram-bar').style.width = ram + '%';
+            document.getElementById('ram-val').innerText = Math.round(ram) + '%';
+
+            document.getElementById('disk-bar').style.width = disk + '%';
+            document.getElementById('disk-val').innerText = Math.round(disk) + '%';
+
+            document.getElementById('net-bar').style.width = Math.min(100, net * 12) + '%';
+            document.getElementById('net-val').innerText = net.toFixed(1) + ' MB/s';
+            document.getElementById('top-net').innerText = `ONLINE [${net.toFixed(1)} MB/S]`;
+        }
+
+        setInterval(async () => {
+            if (window.pywebview && window.pywebview.api && window.pywebview.api.get_system_stats) {
+                try {
+                    const s = await window.pywebview.api.get_system_stats();
+                    updateSystemMeters(s.cpu, s.ram, s.disk, s.net);
+                    return;
+                } catch(e) {}
+            }
+
+            // High-fidelity natural fluctuation
+            const cpu = 20 + Math.random() * 24 + (Math.sin(Date.now() / 1400) * 8);
+            const ram = 66 + Math.sin(Date.now() / 3200) * 3;
+            const disk = 85.7;
+            const net = 2.8 + Math.random() * 4.2;
+            updateSystemMeters(cpu, ram, disk, net);
+        }, 1200);
+
+        // ========================================================
+        // 7. MIC TOGGLE (Center Reticle COM & Bottom Dock)
+        // ========================================================
+        let isMicActive = false;
+        const reticleBtn = document.getElementById('reticle-btn');
+        const coreStatusText = document.getElementById('core-status-text');
+        const micDockBtn = document.getElementById('mic-dock-btn');
+        const topMicIndicator = document.getElementById('top-mic-indicator');
+        const beaconDot = document.getElementById('beacon-dot');
+
+        function toggleMic() {
+            isMicActive = !isMicActive;
+            if (isMicActive) {
+                // Mic ACTIVE (Listening)
+                reticleBtn.classList.add('mic-listening');
+                coreStatusText.innerText = 'LIVE';
+                coreStatusText.style.color = '#ff184c';
+
+                micDockBtn.innerText = 'MIC: LISTENING...';
+                micDockBtn.style.borderColor = '#ff184c';
+                micDockBtn.style.color = '#ff184c';
+
+                topMicIndicator.innerText = 'ACTIVE [MIC ON]';
+                topMicIndicator.className = 'strip-val red';
+
+                beaconDot.style.background = '#00f0ff';
+                beaconDot.style.boxShadow = '0 0 16px #00f0ff';
+            } else {
+                // Mic STANDBY (Muted)
+                reticleBtn.classList.remove('mic-listening');
+                coreStatusText.innerText = 'OFF';
+                coreStatusText.style.color = '#00f0ff';
+
+                micDockBtn.innerText = 'MIC: STANDBY';
+                micDockBtn.style.borderColor = '#00f0ff';
+                micDockBtn.style.color = '#00f0ff';
+
+                topMicIndicator.innerText = 'STANDBY [MIC OFF]';
+                topMicIndicator.className = 'strip-val';
+
+                beaconDot.style.background = '#ff184c';
+                beaconDot.style.boxShadow = '0 0 16px #ff184c';
+            }
+        }
+
+        reticleBtn.addEventListener('click', toggleMic);
+        micDockBtn.addEventListener('click', toggleMic);
+    </script>
+</body>
+</html>

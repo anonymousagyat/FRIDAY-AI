@@ -1,0 +1,35 @@
+# Python compilation & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Personal Credentials, Configs & Runtime State (DO NOT COMMIT)
+config.json
+contacts.json
+user_memory.json
+chat_history.json
+.env
+
+# Caches, logs & Vector Database
+.cache/
+*.log
+*.tmp
+knowledge.db
+
+# Audio recordings & temporary dumps
+*.wav
+*.mp3
+
+# Operating System & IDE
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRIDAY 2.0 — Cybernetic Neural OS</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Particle & Tech Grid Layers -->
+    <canvas id="particles-canvas"></canvas>
+    <div class="hud-grid-overlay"></div>
+    <div class="vignette-overlay"></div>
+
+    <!-- Top HUD Telemetry Bar -->
+    <header class="top-hud-bar glass-panel">
+        <div class="hud-left">
+            <div class="reactor-icon">
+                <div class="inner-core"></div>
+            </div>
+            <div class="identity-badge" id="identity-badge-btn" title="Click to Rename Assistant">
+                <span class="status-pip live"></span>
+                <span id="nav-assistant-name" class="nav-name">FRIDAY</span>
+                <span class="version-tag">MK-LXXXV</span>
+                <button id="rename-trigger-btn" class="rename-pill-btn" title="Rename Assistant">
+                    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span>RENAME</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="hud-center">
+            <div class="telemetry-pill">
+                <span class="dot green"></span>
+                <span class="label">ENGINE:</span>
+                <span class="val" id="engine-tag">GEMINI LIVE BIDI</span>
+            </div>
+            <div class="telemetry-pill interactive-pill" id="voice-pill" title="Click to Switch Speaking Voice">
+                <span class="dot cyan"></span>
+                <span class="label">VOICE:</span>
+                <span class="val" id="voice-tag">AOEDE</span>
+            </div>
+        </div>
+
+        <div class="hud-right">
+            <div id="system-clock" class="system-clock">00:00:00</div>
+            <button id="toggle-chat-btn" class="hud-btn" title="Toggle Conversation Panel">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span class="hud-btn-label">FEED</span>
+            </button>
+            <button id="settings-btn" class="hud-btn" title="Open Settings">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Central Command & Holographic Interface -->
+    <main class="main-container">
+        <!-- Holographic Core -->
+        <div class="core-stage">
+            <div class="arc-reactor-frame">
+                <canvas id="orb-canvas"></canvas>
+                <div class="hud-ring outer-ring"></div>
+                <div class="hud-ring middle-ring"></div>
+            </div>
+
+            <!-- Identity & Status Typography -->
+            <div class="info-block">
+                <div class="name-row">
+                    <h1 id="assistant-name" class="glow-text">FRIDAY</h1>
+                </div>
+                <div class="status-container">
+                    <div id="status-badge" class="status-badge">
+                        <span class="status-dot"></span>
+                        <span id="status-text">INITIALIZING SYSTEM...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE DYNAMIC MICROPHONE AUDIO GRAPH LINE -->
+            <div class="audio-graph-panel glass-panel">
+                <div class="graph-header">
+                    <div class="graph-tag">
+                        <span class="live-blip"></span>
+                        <span>MICROPHONE OSCILLOSCOPE // REAL-TIME SPECTRUM</span>
+                    </div>
+                    <div class="graph-indicators">
+                        <span class="indicator-item">SAMPLING: 48 kHz</span>
+                        <span class="indicator-item" id="graph-state-label">LIVE SENSING</span>
+                    </div>
+                </div>
+                <div class="canvas-wrap">
+                    <canvas id="audio-wave-canvas"></canvas>
+                </div>
+                <div class="graph-footer">
+                    <span>20 Hz</span>
+                    <span>250 Hz</span>
+                    <span>1.0 kHz</span>
+                    <span>4.0 kHz</span>
+                    <span>16.0 kHz</span>
+                </div>
+            </div>
+
+            <!-- Live Speech-to-Text Recognition Banner -->
+            <div id="live-transcript" class="transcript-banner glass-panel hidden">
+                <div class="transcript-icon">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>
+                </div>
+                <span id="live-transcript-text" class="transcript-text"></span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Side Chat Feed Panel -->
+    <aside id="chat-panel" class="chat-drawer glass-panel collapsed">
+        <div class="drawer-header">
+            <div class="drawer-title">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <h2>ACTIVITY FEED</h2>
+            </div>
+            <div class="drawer-actions">
+                <button id="clear-chat-btn" class="icon-btn-sm" title="Clear History">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+                <button id="close-chat-btn" class="icon-btn-sm" title="Close Panel">
+                    <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+        </div>
+        <div id="chat-messages" class="chat-stream">
+            <!-- Messages stream in dynamically -->
+        </div>
+    </aside>
+
+    <!-- Floating Quick Chat Toggle when panel is collapsed -->
+    <button id="floating-chat-toggle" class="floating-chat-btn glass-btn" title="Open Conversation">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span class="unread-pip"></span>
+    </button>
+
+    <!-- Bottom Command Deck -->
+    <footer class="bottom-dock">
+        <!-- Quick Action Shortcuts -->
+        <div class="quick-chips">
+            <button class="chip-btn" data-cmd="Open the games folder in D drive">📁 D:\Games</button>
+            <button class="chip-btn" data-cmd="Open Brave browser">🌐 Brave</button>
+            <button class="chip-btn" data-cmd="Wi-Fi turn off">📶 Wi-Fi</button>
+            <button class="chip-btn" data-cmd="Turn off Bluetooth">🔵 Bluetooth</button>
+            <button class="chip-btn" data-cmd="Make a txt file on desktop named calculator.txt and write python calculator code in it">📝 Calculator Code</button>
+        </div>
+
+        <div class="dock-bar glass-panel">
+            <!-- Glowing Mic Button -->
+            <div class="mic-button-wrapper">
+                <div class="mic-pulse-ring ring-1"></div>
+                <div class="mic-pulse-ring ring-2"></div>
+                <button id="mic-btn" class="mic-btn" title="Start / Stop Voice Command">
+                    <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2.2" fill="none"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                </button>
+            </div>
+
+            <!-- Text Command Form -->
+            <form id="text-input-form" class="command-form">
+                <input type="text" id="text-input" placeholder="Type a command or ask anything... (Press Enter)" autocomplete="off">
+                <button type="submit" id="send-btn" title="Send Command">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </form>
+        </div>
+    </footer>
+
+    <!-- RENAME ASSISTANT MODAL -->
+    <div id="rename-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <h2>RENAME ASSISTANT</h2>
+                </div>
+                <button id="close-rename-btn" class="icon-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Change the identity of your AI assistant. The conversational persona will update automatically.</p>
+
+                <!-- Quick Presets -->
+                <div class="preset-chips">
+                    <span class="preset-label">QUICK PRESETS:</span>
+                    <button type="button" class="preset-btn" data-name="JARVIS">JARVIS</button>
+                    <button type="button" class="preset-btn" data-name="FRIDAY">FRIDAY</button>
+                    <button type="button" class="preset-btn" data-name="EDITH">EDITH</button>
+                    <button type="button" class="preset-btn" data-name="ALFRED">ALFRED</button>
+                    <button type="button" class="preset-btn" data-name="TITAN">TITAN</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="new-assistant-name">Assistant Name</label>
+                    <input type="text" id="new-assistant-name" placeholder="e.g. JARVIS, FRIDAY, EDITH" maxlength="20">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancel-rename-btn" class="secondary-btn">Cancel</button>
+                <button type="button" id="confirm-rename-btn" class="primary-btn">Save Identity</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <h2>SYSTEM CONFIGURATION</h2>
+                </div>
+                <button id="close-settings-btn" class="icon-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section-title">GEMINI LIVE BIDI ENGINE</div>
+
+                <div class="form-group" id="group-gemini-voice">
+                    <label for="setting-gemini-voice">Gemini Live Speaking Voice</label>
+                    <select id="setting-gemini-voice">
+                        <optgroup label="Female / Expressive Voices (FRIDAY)">
+                            <option value="Aoede">Aoede — Confident, Warm & Witty (Default Friday)</option>
+                            <option value="Kore">Kore — Calm, Soothing & Gentle</option>
+                            <option value="Leda">Leda — Elegant, Smooth & Articulate</option>
+                            <option value="Autonoe">Autonoe — Bright, Cheerful & Playful</option>
+                            <option value="Erinome">Erinome — Sweet, Soft & Conversational</option>
+                            <option value="Laomedeia">Laomedeia — Rich, Executive & Crisp</option>
+                        </optgroup>
+                        <optgroup label="Male / Deep Voices (JARVIS)">
+                            <option value="Charon">Charon — Deep, British & Resonant (Classic JARVIS)</option>
+                            <option value="Puck">Puck — Upbeat, Energetic & Casual</option>
+                            <option value="Fenrir">Fenrir — Strong, Direct & Commanding</option>
+                            <option value="Zephyr">Zephyr — Smooth, Modern & Balanced</option>
+                            <option value="Orus">Orus — Warm, Grounded & Friendly</option>
+                            <option value="Umbriel">Umbriel — Quiet, Thoughtful & Steady</option>
+                        </optgroup>
+                    </select>
+                    <span class="field-hint">Select Friday's real-time native HD voice model (sub-300ms duplex).</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="setting-gemini-key">Google Gemini API Key (Live Bidi & Vision)</label>
+                    <input type="password" id="setting-gemini-key" placeholder="AIza...">
+                    <span class="field-hint">Free key at aistudio.google.com</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="setting-tavily-key">Tavily AI Search Key (Autonomous Web Intelligence)</label>
+                    <input type="password" id="setting-tavily-key" placeholder="tvly-...">
+                    <span class="field-hint">Free key at app.tavily.com</span>
+                </div>
+
+                <div class="settings-section-title">SYSTEM AUTOMATION</div>
+                <div class="form-group switch-group">
+                    <div>
+                        <label for="setting-dictation">Dictation Typing Mode</label>
+                        <span class="field-hint">Directly types spoken words into your active window at the cursor.</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-dictation">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="save-settings-btn" class="primary-btn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Hub -->
+    <div id="toast-container"></div>
+
+    <!-- Script Pipeline -->
+    <script src="js/three.min.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/orb.js"></script>
+    <script src="js/visualizer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
