@@ -63,7 +63,7 @@
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/<your-username>/FRIDAY-AI.git
+git clone https://github.com/anonymousagyat/FRIDAY-AI.git
 cd FRIDAY-AI
 ```
 
