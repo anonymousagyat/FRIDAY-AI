@@ -33,3 +33,9 @@ desktop.ini
 .DS_Store
 .vscode/
 .idea/
+
+# PyInstaller & Packaging Artifacts
+build/
+dist/
+*.manifest
+*.spec.bak
