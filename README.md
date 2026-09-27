@@ -3,7 +3,7 @@
 <div align="center">
 
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-0078D6.svg)](https://www.microsoft.com/windows)
-[![Installer](https://img.shields.io/badge/Installer-Setup%20Wizard%20(No%20Python%20Needed)-success.svg)](https://github.com/<your-username>/FRIDAY-AI/releases)
+[![Installer](https://img.shields.io/badge/Installer-Setup%20Wizard%20(No%20Python%20Needed)-success.svg)](https://github.com/anonymousagyat/FRIDAY-AI/releases)
 [![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![Gemini](https://img.shields.io/badge/AI%20Engine-Gemini%202.5%20Live%20Bidi-8E75C4.svg)](https://aistudio.google.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -58,7 +58,7 @@
 The fastest and easiest way to use FRIDAY on any Windows 10 or 11 computer:
 
 1. **Download the Installer**:
-   Grab **`FRIDAY_Setup_v1.0.0.exe`** directly from [**GitHub Releases**](https://github.com/<your-username>/FRIDAY-AI/releases/latest).
+   Grab **`FRIDAY_Setup_v1.0.0.exe`** directly from [**GitHub Releases**](https://github.com/anonymousagyat/FRIDAY-AI/releases/latest).
 2. **Run Setup**:
    Double-click the installer and follow the wizard:
    - Installs silently to `%LOCALAPPDATA%\Programs\FRIDAY-AI` (*No administrator privileges required*).
